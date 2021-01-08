@@ -10,22 +10,13 @@ import pwd
 import sys
 from stat import *
 
-CONFIG_FILE = "/etc/ua_hpc_acct.conf"
-
-def parse_config_file(fname):
-    c = {}
-
-    f = open(fname, 'rb')
-    for l in f:
-        parts = l.split()
-        c[parts[0].decode('utf-8')] = parts[1].decode('utf-8')
-
-    f.close()
-
-    return c  
+Q_HOST = ""
+Q_PORT = "8000"
+Q_USER = ""
+Q_PASS = ""
 
 def _send_req(method, uri, data, hdrs):
-    c = http.client.HTTPSConnection(cfg['qHost'], cfg['qPort'])
+    c = http.client.HTTPSConnection(Q_HOST, Q_PORT)
     
     try:
         if data != None:
@@ -48,9 +39,9 @@ def _send_req(method, uri, data, hdrs):
         print(message)
         sys.exit(-1)
 
-def auth(cfg):
+def auth():
 
-    r = _send_req("POST", "/v1/session/login", { "username": cfg['qUser'], "password": cfg['qPass'] }, { 'Content-Type': "application/json" })
+    r = _send_req("POST", "/v1/session/login", { "username": Q_USER, "password": Q_PASS }, { 'Content-Type': "application/json" })
 
     return(r['bearer_token'])
 
@@ -72,8 +63,7 @@ def getHPCquotas(token):
         
     return(q)
 
-cfg = parse_config_file(CONFIG_FILE)
-api_token = auth(cfg)
+api_token = auth()
 quotas = getHPCquotas(api_token)
 
 for q in quotas:
